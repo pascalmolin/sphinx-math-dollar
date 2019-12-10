@@ -7,6 +7,10 @@ from . import __version__
 from docutils.nodes import GenericNodeVisitor, Text, math, math_block, FixedTextElement, literal
 from docutils.transforms import Transform
 
+from sphinx.util import logging
+logger = logging.getLogger(__name__)
+logger.info('loading extension %s'%__name__)
+
 NODE_BLACKLIST = node_blacklist = (FixedTextElement, literal, math)
 
 DEBUG = bool(os.environ.get("MATH_DOLLAR_DEBUG", False))
@@ -54,6 +58,27 @@ class TransformMath(Transform):
     def apply(self, **kwargs):
         self.document.walk(MathDollarReplacer(self.document))
 
+"""
+FIXME: rewrite at source-read is too early, there is a risk to embed math in codeblocs
+"""
+import re
+#_linedisplay = re.compile(r"( *)(?:\\[[])([^\n]*?)(?:\\[]])")
+#_multilinedisplay = re.compile(r"^( *)(?:\\[[])$((?:^.*$)*?)^(?:\1\\[]])",re.MULTILINE)
+redisplay = re.compile(r"(?<! )( *)\\\[(.*?)\1\\\]",re.MULTILINE|re.DOTALL)
+shift = '   '
+def display_tex(match):
+    tab, inner = match.group(1), match.group(2)
+    intab = tab + shift
+    inner = [l.strip() for l in inner.split('\n')]
+    inner = intab + (intab + '\n').join([ l for l in inner if len(l)]) # remove blank lines
+    inner = inner.replace('<','\lt ').replace('>','\gt ')
+    eq = "\n%s.. math::\n\n%s\n\n"%(tab,inner)
+    #logger.info('###\n %s###'%eq)
+    return eq
+
+def rewrite_displaymath(app, docname, source):
+    source[0] = redisplay.sub(display_tex, source[0])
+
 def config_inited(app, config):
     global node_blacklist, DEBUG
     node_blacklist = config.math_dollar_node_blacklist
@@ -68,6 +93,7 @@ def setup(app):
     app.add_config_value('parallel_read_safe', True, '')
 
     app.connect('config-inited', config_inited)
+    app.connect('source-read', rewrite_displaymath)
 
     return {
         'version': __version__,
