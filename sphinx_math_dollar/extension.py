@@ -70,7 +70,7 @@ def display_tex(match):
     tab, inner = match.group(1), match.group(2)
     intab = tab + shift
     inner = [l.strip() for l in inner.split('\n')]
-    inner = intab + (intab + '\n').join([ l for l in inner if len(l)]) # remove blank lines
+    inner = intab + ('\n' + intab).join([ l for l in inner if len(l)]) # remove blank lines
     inner = inner.replace('<','\lt ').replace('>','\gt ')
     eq = "\n%s.. math::\n\n%s\n\n"%(tab,inner)
     #logger.info('###\n %s###'%eq)
