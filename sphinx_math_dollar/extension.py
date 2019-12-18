@@ -64,7 +64,8 @@ FIXME: rewrite at source-read is too early, there is a risk to embed math in cod
 import re
 #_linedisplay = re.compile(r"( *)(?:\\[[])([^\n]*?)(?:\\[]])")
 #_multilinedisplay = re.compile(r"^( *)(?:\\[[])$((?:^.*$)*?)^(?:\1\\[]])",re.MULTILINE)
-redisplay = re.compile(r"(?<! )( *)\\\[(.*?)\1\\\]",re.MULTILINE|re.DOTALL)
+# see https://regex101.com/r/CLD2rC/1 
+redisplay = re.compile(r"(?<! )( *)\\\[(.*?)(\n\1\\\]|\\\])",re.MULTILINE|re.DOTALL)
 shift = '   '
 def display_tex(match):
     tab, inner = match.group(1), match.group(2)
