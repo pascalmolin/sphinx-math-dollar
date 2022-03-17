@@ -16,6 +16,7 @@ NODE_BLACKLIST = node_blacklist = (FixedTextElement, literal, math)
 DEBUG = bool(os.environ.get("MATH_DOLLAR_DEBUG", False))
 
 class MathDollarReplacer(GenericNodeVisitor):
+    optional = ('PostList','PostNode')
     def default_visit(self, node):
         return node
 
